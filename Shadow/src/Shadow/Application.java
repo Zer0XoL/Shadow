@@ -1,5 +1,6 @@
 package Shadow;
 
+import Shadow.System.ShadowEngine;
 import Shadow.System.Debug.ErrorLog;
 import Shadow.System.Script.ShadowCommand;
 import Shadow.System.Script.ShadowParser;

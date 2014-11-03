@@ -1,5 +1,6 @@
-package Shadow;
+package Shadow.System;
 
+import Shadow.ShadowClient;
 import Shadow.System.Debug.ErrorLog;
 
 public class ShadowEngine {

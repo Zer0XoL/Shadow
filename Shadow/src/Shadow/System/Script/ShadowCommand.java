@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import Shadow.ShadowClient;
-import Shadow.ShadowEngine;
+import Shadow.System.ShadowEngine;
 
 public class ShadowCommand {
 

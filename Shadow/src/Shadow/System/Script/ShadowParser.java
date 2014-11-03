@@ -3,7 +3,7 @@ package Shadow.System.Script;
 import java.util.ArrayList;
 import java.util.List;
 
-import Shadow.ShadowEngine;
+import Shadow.System.ShadowEngine;
 
 public class ShadowParser {
 
