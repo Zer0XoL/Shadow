@@ -5,22 +5,26 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import Shadow.ShadowEngine;
+import Shadow.System.ShadowEngine;
 
 public class ShadowFile {
 	
 	public static final String SHADOWFILE_EXTENSION = "shd";
 	private String contents, path;
 	
+	private int lineptr;
+	private String remainder;
+	
 	public ShadowFile(String contents, String path) {
-		this.contents = contents;
+		lineptr = 0;
+		remainder = this.contents = contents;
 		this.path = path;
 	}
 	
 	public static ShadowFile load(String path) {
 		
-		int indexExtension = path.indexOf(".") + 1;
-		if(path.substring(indexExtension, path.length() - 1) != SHADOWFILE_EXTENSION) {
+		int indexExtension = path.indexOf(".");
+		if(path.substring(indexExtension, path.length()) != SHADOWFILE_EXTENSION) {
 			ShadowEngine.report("Please attempt to load a compatible file. (Extension ." + SHADOWFILE_EXTENSION + ")!");
 		}
 		
@@ -38,6 +42,15 @@ public class ShadowFile {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public String nextLine() {
+		String result = "";
+		int index = remainder.indexOf('\n');
+		result = contents.substring(0, index);
+		remainder = remainder.replace(result, "").trim();
+		
+		return result;
 	}
 	
 	public void load() {

@@ -17,6 +17,9 @@ public class ShadowCommand {
 
 	public static final Map<String, ShadowCommandAction> cmdlist = new HashMap<>();
 
+	/*
+	 * List of different types of thinkable commands to debug structure for bugs, lacks or flaws.
+	 */
 	public static final ShadowCommand echo = new ShadowCommand("echo", (s) -> System.out.println(s));
 	public static final ShadowCommand add = new ShadowCommand("add",
 			(s) -> {
@@ -24,12 +27,20 @@ public class ShadowCommand {
 				double arg2 = Double.parseDouble(ShadowParser.getToken(s, 1));
 				System.out.println(arg1 + " + " + arg2 + " = " + (arg1 + arg2));
 			});
-	public static final ShadowCommand initViewport = new ShadowCommand("initviewport",
+	public static final ShadowCommand setviewport = new ShadowCommand("initviewport",
 			(s) -> {
-				short w = Short.parseShort(ShadowParser.getToken(s, 0));
-				short h = Short.parseShort(ShadowParser.getToken(s, 1));
+				int w = Integer.parseInt(ShadowParser.getToken(s, 0));
+				int h = Integer.parseInt(ShadowParser.getToken(s, 1));
 				int cc = Integer.parseInt(ShadowParser.getToken(s, 2));
-				client.initViewport(w, h, cc);
+				client.setViewport(w, h, cc);
+			});
+	public static final ShadowCommand renderSprite = new ShadowCommand("putsprite",
+			(s) -> {
+				client.getViewport().render(client.getPlayer());
+			});
+	public static final ShadowCommand setClientSize = new ShadowCommand("setscreensize",
+			(s) -> {
+				
 			});
 
 	public ShadowCommand(String cmdKey, ShadowCommandAction cmd) {

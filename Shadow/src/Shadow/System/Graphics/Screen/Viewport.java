@@ -1,37 +1,56 @@
 package Shadow.System.Graphics.Screen;
 
+import java.awt.image.BufferStrategy;
+
+import Shadow.System.Entities.Entity;
+
 public class Viewport {
-	public static final short DEFAULT_WIDTH = 640;
-	public static final short DEFAULT_HEIGHT = 480;
 	public static final int DEFAULT_CLEAR_COLOR = 0;
 	
 	
-	private short w, h;
+	private int w, h;
 	private int[] pixels;
 	private int col;
 	
 	public Viewport() {
-		w = DEFAULT_WIDTH;
-		h = DEFAULT_HEIGHT;
+		w = 0;
+		h = 0;
 		col = DEFAULT_CLEAR_COLOR;
 		pixels = new int[w * h];
 	}
 	
-	public Viewport(int[] pixels, short w, short h) {
-		this.pixels = pixels;
+	public Viewport(int[] pixels, int w, int h) {
 		this.w = w;
 		this.h = h;
+		this.pixels = new int[w * h];
+		this.pixels = pixels;
 		col = DEFAULT_CLEAR_COLOR;
 	}
 	
-	public Viewport(short w, short h, int col) {
+	public Viewport(int[] pixels, int w, int h, int col) {
 		this.w = w;
 		this.h = h;
 		this.col = col;
 		this.pixels = new int[w * h];
+		this.pixels = pixels;
 	}
 	
 	public void render() {
+	}
+	
+	public void render(Entity e) {
+		
+	}
+	
+	
+	public void setRaster(int[] rasterdata) {
+		if(rasterdata == null) return;
+		pixels = rasterdata;
+	}
+	
+	public void setSize(int w, int h) {
+		this.w = w;
+		this.h = h;
 	}
 	
 	public void clearColor(int col) {
@@ -44,11 +63,15 @@ public class Viewport {
 		}
 	}
 	
-	public short getWidth() {
+	public int getWidth() {
 		return w;
 	}
 	
-	public short getHeight() {
+	public int getHeight() {
 		return h;
+	}
+	
+	public int[] getRasterData() {
+		return pixels;
 	}
 }
