@@ -3,6 +3,7 @@ package Shadow.System.Graphics.Screen;
 import java.awt.image.BufferStrategy;
 
 import Shadow.System.Entities.Entity;
+import Shadow.System.Graphics.Color;
 
 public class Viewport {
 	public static final int DEFAULT_CLEAR_COLOR = 0;
@@ -11,13 +12,17 @@ public class Viewport {
 	private int w, h;
 	private int[] pixels;
 	private int col;
-	private double xCam, yCam; //TODO - Implement in the rendering
+	private double xCam, yCam, zCam; //TODO - Implement in the rendering
 	
 	public Viewport() {
 		w = 0;
 		h = 0;
 		col = DEFAULT_CLEAR_COLOR;
 		pixels = new int[w * h];
+		
+		xCam = 0;
+		yCam = 0;
+		zCam = 0;
 	}
 	
 	public Viewport(int[] pixels, int w, int h) {
@@ -26,6 +31,10 @@ public class Viewport {
 		this.pixels = new int[w * h];
 		this.pixels = pixels;
 		col = DEFAULT_CLEAR_COLOR;
+		
+		xCam = w / 2D;
+		yCam = h / 2D;
+		zCam = 10D;
 	}
 	
 	public Viewport(int[] pixels, int w, int h, int col) {
@@ -80,9 +89,15 @@ public class Viewport {
 	    pixels[x + y * w] = col;
 	}
 	
-	public void setCamera(double x, double y) {
+	public void setPixel(Color color, int x, int y) {
+		int col = color.getColorInt();
+		setPixel(col, x, y);
+	}
+	
+	public void setCamera(double x, double y, double z) {
 		xCam = x;
 		yCam = y;
+		zCam = z;
 	}
 	
 	
@@ -109,5 +124,9 @@ public class Viewport {
 	
 	public double getCamY() {
 		return yCam;
+	}
+	
+	public double getCamZ() {
+		return zCam;
 	}
 }

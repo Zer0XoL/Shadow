@@ -21,6 +21,7 @@ import Shadow.System.Graphics.Screen.Sprite;
 import Shadow.System.Graphics.Screen.SpriteSheet;
 import Shadow.System.Graphics.Screen.Viewport;
 import Shadow.System.Script.*;
+import Shadow.System.World.Level;
 
 public class ShadowClient extends Canvas implements Runnable {
 
@@ -38,17 +39,21 @@ public class ShadowClient extends Canvas implements Runnable {
     private int framebufferdepth;
 
     public static Viewport viewport;
-    public static Player player;
     private BufferedImage raster;
     private int[] rasterdata;
     private int sw, sh;
+    
+    /*
+     * Game things
+     */
+    private Player player;
+    private Level level;
 
     public ShadowClient() {
         sw = DEFAULT_WIDTH;
         sh = DEFAULT_HEIGHT;
         raster = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
         rasterdata = ((DataBufferInt) raster.getRaster().getDataBuffer()).getData();
-        viewport = new Viewport(rasterdata, sw, sh);
         targetfps = DEFAULT_FPS;
         framebufferdepth = DEFAULT_FRAMEBUFFER_DEPTH;
     }
@@ -61,7 +66,6 @@ public class ShadowClient extends Canvas implements Runnable {
         this.sh = sh;
         raster = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
         rasterdata = ((DataBufferInt) raster.getRaster().getDataBuffer()).getData();
-        viewport = new Viewport(rasterdata, sw, sh);
         targetfps = DEFAULT_FPS;
         framebufferdepth = DEFAULT_FRAMEBUFFER_DEPTH;
     }
@@ -71,14 +75,16 @@ public class ShadowClient extends Canvas implements Runnable {
 
         JFrame frame = new JFrame(TITLE);
         frame.add(ShadowEngine.client);
-        frame.setResizable(true);
+        frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
-
-        //nice blue: 0x3399ff
-        viewport.clearColor(0);
+        
+        viewport = new Viewport(rasterdata, sw, sh);
+        viewport.clearColor(0); //nice blue: 0x3399ff
+        level = new Level(Level.test);
+        level.init();
     }
 
     /*
@@ -189,13 +195,15 @@ public class ShadowClient extends Canvas implements Runnable {
     
     public void render() {
         viewport.clear();
+        level.render(viewport);
 //        testSprite.render(viewport, 128, 96);
-        testParticle.render(viewport);
-        testParticle2.render(viewport);
-        testParticle3.render(viewport);
-        testParticle4.render(viewport);
-        testParticle5.render(viewport);
-        testParticle6.render(viewport);
+//        testParticle.render(viewport);
+//        testParticle2.render(viewport);
+//        testParticle3.render(viewport);
+//        testParticle4.render(viewport);
+//        testParticle5.render(viewport);
+//        testParticle6.render(viewport);
+        
         rasterdata = viewport.getRasterData();
     }
 

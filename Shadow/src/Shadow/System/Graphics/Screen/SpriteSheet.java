@@ -17,6 +17,7 @@ public class SpriteSheet {
 	
 	//public static final SpriteSheet tiles = loadSheet("/res/tiles.png");
 	public static final SpriteSheet testsprites = loadSheet("/res/testsprites.png");
+	public static final SpriteSheet testtiles = loadSheet("/res/testtiles.png");
 	
 	public static SpriteSheet loadSheet(String path) {
 		try {

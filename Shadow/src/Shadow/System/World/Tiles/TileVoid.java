@@ -9,7 +9,6 @@ public class TileVoid extends Tile {
 		super(id, layer, mat);
 	}
 	
-	
 	public String toString() {
 		return "Void";
 	}

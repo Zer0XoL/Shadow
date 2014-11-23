@@ -1,11 +1,14 @@
 package Shadow.System.Graphics.Lights;
 
+import Shadow.System.Graphics.Color;
 import Shadow.System.Graphics.Screen.Viewport;
 
-public class LightDirectional {
-	public double x, y, z; //individual elements for the directional light vector
+public class LightDirectional extends Light {
 	
-	public void render(Viewport vp) {
-		
+	public LightDirectional(Color color, double x, double y, double z) {
+		super(color);
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 }
