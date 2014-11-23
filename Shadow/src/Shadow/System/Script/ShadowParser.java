@@ -15,7 +15,7 @@ public class ShadowParser {
 	}
 
 	/*
-	 * Returns the token of the string for the given index 
+	 * Returns the token of the string for the given index (tokens are separated by spaces, so each index points to each token)
 	 * 
 	 * Returns empty string if index out of bounds relative to string
 	 */
@@ -23,22 +23,22 @@ public class ShadowParser {
 		char prevChar = ' ';
 		int token = 0;
 		int start = -1;
-		for (int i = 0; i < src.length(); ++i) {
+		for (int i = 0; i < src.length(); ++i) {                                  
 			if (index > 0) {
-				if (src.charAt(i) != ' ' && prevChar == ' ') {
+				if (src.charAt(i) != ' ' && prevChar == ' ') { //if there is a space and the token is equal to the index, find&return substring from then till next space/EoL
 					if (token == index) {
 						if (start == -1)
 							start = i;
 						for (int j = start; j < src.length(); ++j) {
-							if (src.charAt(j) == ' ' || j + 1 == src.length()) {
-								return src.substring(start, j + 1).trim();
+							if (src.charAt(j) == ' ' || j + 1 == src.length()) { //accounts for the edge case that the token index is the last and therefore has no space
+								return src.substring(start, j + 1).trim(); //trim cuz paranoid
 							}
 						}
 					}
 					token++;
 				}
 				prevChar = src.charAt(i);
-			} else {
+			} else { //if the token index is the first token, make sure first characters aren't whitespaces (could've solved by trimming)
 				if (start == -1) {
 					if (src.charAt(i) != ' ') {
 						start = i;

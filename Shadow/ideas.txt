@@ -1,0 +1,29 @@
+Ideas {
+
+Gameplay {
+	Cave-crawler in 2D?
+	Gather orbs (lighting), orbs give simple damage increases and could serve as an ambiguous source of increasing powers?
+	this is a motivator to keep playing?
+}
+
+Specific Mechanics {
+	
+}
+
+Engine {
+	
+}
+
+Graphics {
+	Try implementing some deferred shading / blinn-phong customization for simple 2D tile geometry?
+}
+
+Levels {
+	
+}
+
+Other {
+
+}
+
+}

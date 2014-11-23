@@ -5,8 +5,8 @@ import Shadow.Util.Math.Point;
 
 public class Player extends Entity {
 	
-	public Player(Point pos, Sprite sprite) {
-		super(pos, sprite);
+	public Player(double x, double y, Sprite sprite) {
+		super(x, y, sprite);
 	}
 	
 	public String toString() {

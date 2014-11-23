@@ -36,7 +36,6 @@ public class ShadowCommand {
 			});
 	public static final ShadowCommand renderSprite = new ShadowCommand("putsprite",
 			(s) -> {
-				client.getViewport().render(client.getPlayer());
 			});
 	public static final ShadowCommand setClientSize = new ShadowCommand("setscreensize",
 			(s) -> {
