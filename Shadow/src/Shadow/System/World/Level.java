@@ -52,7 +52,7 @@ public class Level {
 	}
 	
 	
-	public void render(Viewport vp) {
+	public void renderPixelShader(Viewport vp) {
 		
 		//Per tile calculations
 		for (int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
@@ -158,6 +158,134 @@ public class Level {
 			}
 		}
 	}
+
+	
+	public void renderTileShader(Viewport vp) {
+		
+		//Per tile calculations
+		for (int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
+			for (int x = 0; x < w * Tile.TILESIZE; x += Tile.TILESIZE) {
+				Tile t = getTile(x, y);
+				Material currMaterial = t.getMaterial();
+//				vertices.add(new Point(x, y + Tile.TILESIZE)); //bottom-left vertex
+//				vertices.add(new Point(x + Tile.TILESIZE, y + Tile.TILESIZE)); //bottom-right vertex
+//				vertices.add(new Point(x + Tile.TILESIZE, y)); //top-right vertex
+//				vertices.add(new Point(x, y)); //top-left vertex
+				
+//				normals.add(new Vector(0, 0, 1)); //we add a normal to each vertex so that if we wish we can offset them and interpolate for effects
+//				normals.add(new Vector(0, 0, 1));
+//				normals.add(new Vector(0, 0, 1));
+//				normals.add(new Vector(0, 0, 1));
+				
+				
+				//Per tile calculations
+				boolean hasCalculated = false;
+				Color shadePix = null;
+				double contribTotalR = 0D;
+				double contribTotalG = 0D;
+				double contribTotalB = 0D;
+				double contribTotalA = 1D;
+				
+				double lambert = 0D;
+				double blinn = 0D;
+				
+				double contribDiffuseR = 0D;
+				double contribDiffuseG = 0D;
+				double contribDiffuseB = 0D;
+				
+				double contribSpecularR = 0D;
+				double contribSpecularG = 0D;
+				double contribSpecularB = 0D;
+				
+				
+				
+				for(int yy = 0; yy < 8; ++yy) {
+					for(int xx = 0; xx < 8; ++xx) {
+						int xp = x + xx;
+						int yp = y + yy;
+						
+						int tx = t.id % SpriteSheet.testtiles.getWidth() + xx;
+						int ty = t.id / SpriteSheet.testtiles.getHeight() + yy;
+						
+						
+						int pix = SpriteSheet.testtiles.getPixel(tx, ty); //vp.getPixel(xx, yy);
+						int a = (pix >> 24) & 0xff;
+						int r = (pix >> 16) & 0xff;
+						int g = (pix >> 8) & 0xff;
+						int b = pix & 0xff;
+						
+						shadePix = new Color(r, g, b, a);
+						
+						if(!hasCalculated) {
+						
+						//per light contribution calculations
+						for(int i = 0; i < lights.size(); ++i) {
+							//calculate contribution by positional lights in the level
+							Light tmp = lights.get(i);
+							if(tmp instanceof LightPositional) {
+								double nx = 0, ny = -0.6, nz = 0.8; //this normal SHOULD be normalized if you choose elements such that ||n|| > 1
+								
+								/*
+								 * Do necessary calculations for the diffuse term
+								 */
+								double sx = (tmp.x - xp), sy = (tmp.y - yp), sz = (tmp.z - 0); //vector to (s)ource of light
+								double slen = invSqrt(sx * sx + sy * sy + sz * sz);
+								
+								sx /= slen; //normalize the light source to world position vector
+								sy /= slen;
+								sz /= slen;
+								
+								lambert = (sx * nx) + (sy * ny) + (sz * nz); //lambert's emission law (cos(a) = dot(norm(s), norm(n)))
+								lambert = Math.max(0, lambert);
+								
+								/*
+								 * Do necessary calculations for the specular term
+								 */
+								double vx = (vp.getCamX() - xp), vy = (vp.getCamY() - yp), vz = (vp.getCamZ() - 0); //vector to (v)iewer / eye
+								double hx = vx + sx, hy = vy + sy, hz = vz + sz; //Blinn's halfway vector h = v + s
+								double hlen = Math.sqrt(hx * hx + hy * hy + hz * hz);
+								
+								hx /= hlen; //normalize the halfway vector
+								hy /= hlen;
+								hz /= hlen;
+								
+								blinn = hx * nx + hy * ny + hz * nz; //Blinn-Phong specular reflection (cos(b) = dot(norm(h), norm(n)))
+								blinn = Math.max(0, Math.pow(blinn, currMaterial.specularPow));
+								
+								/*
+								 * Diffuse contributions
+								 */
+								contribDiffuseR = tmp.diffuseColor.r * currMaterial.diffuseCoeffR * lambert;
+								contribDiffuseG = tmp.diffuseColor.g * currMaterial.diffuseCoeffG * lambert;
+								contribDiffuseB = tmp.diffuseColor.b * currMaterial.diffuseCoeffB * lambert;
+								
+								/*
+								 * Specular contributions
+								 */
+								contribSpecularR = tmp.specularColor.r * currMaterial.specularCoeffR * blinn;
+								contribSpecularG = tmp.specularColor.g * currMaterial.specularCoeffG * blinn;
+								contribSpecularB = tmp.specularColor.b * currMaterial.specularCoeffB * blinn;
+								
+								/*
+								 * Add all direct and indirect light contributions
+								 */
+								contribTotalR = contribTotalR + currMaterial.ambientCoeffR * tmp.ambientColor.r + contribDiffuseR + contribSpecularR;
+								contribTotalG = contribTotalG + currMaterial.ambientCoeffG * tmp.ambientColor.g + contribDiffuseG + contribSpecularG;
+								contribTotalB = contribTotalB + currMaterial.ambientCoeffB * tmp.ambientColor.b + contribDiffuseB + contribSpecularB;
+								
+								hasCalculated = true;
+								}
+							}
+						}
+						shadePix.set(contribTotalR * shadePix.r, contribTotalG * shadePix.g, contribTotalB * shadePix.b, contribTotalA);
+						
+						vp.setPixel(shadePix, xp, yp);
+					}
+				}
+			}
+		}
+	}
+
 	
 	public void bufferTiles() {
 		for(int y = 0; y < h; ++y) {

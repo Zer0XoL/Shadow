@@ -165,7 +165,7 @@ public class ShadowClient extends Canvas implements Runnable {
             swapBuffers();
             
             try {
-                Thread.sleep(1);
+                Thread.sleep(0);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -195,7 +195,7 @@ public class ShadowClient extends Canvas implements Runnable {
     
     public void render() {
         viewport.clear();
-        level.render(viewport);
+        level.renderTileShader(viewport);
 //        testSprite.render(viewport, 128, 96);
 //        testParticle.render(viewport);
 //        testParticle2.render(viewport);
