@@ -1,11 +1,13 @@
 package Shadow.System.World;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -35,6 +37,7 @@ public class Level {
 	private List<Light> lights = new ArrayList<>();
 	
 	public static final String test = "src/res/testlevel.lvl";
+	private static final String loadedTiles = "src/res/tilesoutput.txt";
 	
 	public Level(String path) {
 		loadLevel(path);
@@ -44,8 +47,10 @@ public class Level {
 		lights.add(new LightPositional(0, 0, 50));
 		lights.add(new LightPositional( new Color(0.1, 0.1, 0.1, 1D),
 									    new Color(0.9, 0.9, 0.9, 1D),
-										new Color(0.9, 0.9, 0.9, 1D),
-										30, 180, 30));
+										new Color(0.9, 0.9, 0.1, 1D),
+										240, 200, 20));
+		bufferTiles();
+		writeTiles(loadedTiles);
 	}
 	
 	public void tick() {
@@ -58,7 +63,7 @@ public class Level {
 		for (int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
 			for (int x = 0; x < w * Tile.TILESIZE; x += Tile.TILESIZE) {
 				Tile t = getTile(x, y);
-				Material currMaterial = t.getMaterial();
+				Material currMaterial = t.mat;
 //				vertices.add(new Point(x, y + Tile.TILESIZE)); //bottom-left vertex
 //				vertices.add(new Point(x + Tile.TILESIZE, y + Tile.TILESIZE)); //bottom-right vertex
 //				vertices.add(new Point(x + Tile.TILESIZE, y)); //top-right vertex
@@ -75,9 +80,9 @@ public class Level {
 					for(int xx = 0; xx < 8; ++xx) {
 						int xp = x + xx;
 						int yp = y + yy;
-						int tile = t.id;
-						int tx = t.id % SpriteSheet.testtiles.getWidth() + xx;
-						int ty = t.id / SpriteSheet.testtiles.getHeight() + yy;
+						
+						int tx = ((t.id % SpriteSheet.testtiles.getWidth()) << 3) + xx; //<< 3 is equivalent of * Tile.TILESIZE
+						int ty = ((t.id / SpriteSheet.testtiles.getHeight()) << 3) + yy;
 						
 						
 						int pix = SpriteSheet.testtiles.getPixel(tx, ty); //vp.getPixel(xx, yy);
@@ -163,10 +168,10 @@ public class Level {
 	public void renderTileShader(Viewport vp) {
 		
 		//Per tile calculations
-		for (int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
-			for (int x = 0; x < w * Tile.TILESIZE; x += Tile.TILESIZE) {
+		for (int y = 0; y < vp.getHeight(); y += Tile.TILESIZE) {
+			for (int x = 0; x < vp.getWidth(); x += Tile.TILESIZE) {
 				Tile t = getTile(x, y);
-				Material currMaterial = t.getMaterial();
+				Material currMaterial = t.mat;
 //				vertices.add(new Point(x, y + Tile.TILESIZE)); //bottom-left vertex
 //				vertices.add(new Point(x + Tile.TILESIZE, y + Tile.TILESIZE)); //bottom-right vertex
 //				vertices.add(new Point(x + Tile.TILESIZE, y)); //top-right vertex
@@ -197,16 +202,13 @@ public class Level {
 				double contribSpecularG = 0D;
 				double contribSpecularB = 0D;
 				
-				
-				
 				for(int yy = 0; yy < 8; ++yy) {
 					for(int xx = 0; xx < 8; ++xx) {
 						int xp = x + xx;
 						int yp = y + yy;
 						
-						int tx = t.id % SpriteSheet.testtiles.getWidth() + xx;
-						int ty = t.id / SpriteSheet.testtiles.getHeight() + yy;
-						
+						int tx = ((t.id % SpriteSheet.testtiles.getWidth()) << 3) + xx; //<< 3 is equivalent of * Tile.TILESIZE
+						int ty = ((t.id / SpriteSheet.testtiles.getHeight()) << 3) + yy;
 						
 						int pix = SpriteSheet.testtiles.getPixel(tx, ty); //vp.getPixel(xx, yy);
 						int a = (pix >> 24) & 0xff;
@@ -223,7 +225,7 @@ public class Level {
 							//calculate contribution by positional lights in the level
 							Light tmp = lights.get(i);
 							if(tmp instanceof LightPositional) {
-								double nx = 0, ny = -0.6, nz = 0.8; //this normal SHOULD be normalized if you choose elements such that ||n|| > 1
+								double nx = 0, ny = 0, nz = 1; //this normal SHOULD be normalized if you choose elements such that ||n|| > 1
 								
 								/*
 								 * Do necessary calculations for the diffuse term
@@ -333,8 +335,22 @@ public class Level {
 		bufferTiles();
 	}
 	
-	public final double getAmbientTerm() {
-		return 0.05D;
+	public void writeTiles(String path) {
+		try {
+			PrintWriter writer = new PrintWriter(path);
+			
+			for(int y = 0; y < h; ++y) {
+				for(int x = 0; x < w; ++x) {
+					writer.print(tiles[x + y * w] + " ");
+				}
+				writer.print("\n");
+			}
+			
+			writer.flush();
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static double invSqrt(double number){
@@ -350,9 +366,10 @@ public class Level {
 	    return x;
 	}
 	
-	public int getTileType(int x, int y) {
-		x >>= 3;
-		y >>= 3;
+	/*
+	 * Intended for readability in getTile, maybe not necessary?
+	 */
+	private int getTileType(int x, int y) {
 		if(x < 0 || x >= w || y < 0 || y >= h) return -1; //error id, will cause array out of bounds
 		return tiles[x + y * w];
 	}
@@ -360,14 +377,14 @@ public class Level {
 	public Tile getTile(int x, int y) {
 		x >>= 3;
 		y >>= 3;
-//		System.out.println("Getting tile at (" + x + ", " + y + ")" + ", tile type " + getTileType(x, y) + "!");
-		if(x < 0 || x >= w || y < 0 || y >= h) return null;
+		if(x < 0 || x >= w || y < 0 || y >= h) return Tile.voidTile;
 		return Tile.tiles[getTileType(x, y)];
 	}
 	
-	public void setTileType(int id, int x, int y) {
-		x >>= 3;
-		y >>= 3;
+	/*
+	 * Intended for readability in setTile, maybe not necessary?
+	 */
+	private void setTileType(int id, int x, int y) {
 		if(x < 0 || x >= w || y < 0 || y >= h) return;
 		tiles[x + y * w] = id;
 	}

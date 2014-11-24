@@ -1,5 +1,9 @@
 package Shadow.System.Graphics.Materials;
 
+/*
+ * TODO - Add emissive contributions
+ */
+
 public class Material {
 	public double ambientCoeffR, ambientCoeffG, ambientCoeffB;
 	public double diffuseCoeffR, diffuseCoeffG, diffuseCoeffB; 

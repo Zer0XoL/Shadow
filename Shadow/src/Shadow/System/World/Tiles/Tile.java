@@ -28,7 +28,12 @@ public class Tile {
 	public static final TileGrass grassTile = new TileGrass(1, LAYER_BACKGROUND, new Material(0.1, 0.1, 0.1,
 																							  0.8, 0.8, 0.8,
 																							  0.8, 0.8, 0.8,
-																							  2));
+																							  1));
+	
+	public static final TileBrickStone stonebrickTile = new TileBrickStone(2, LAYER_INTERMEDIATE, new Material( 0.1, 0.1, 0.1,
+																												0.8, 0.8, 0.8,
+																												0.8, 0.8, 0.8,
+																												1));
 
 	public Tile(int id, int layer, Material mat) {
 		if (tiles[id] != null) {
@@ -47,9 +52,5 @@ public class Tile {
 	
 	public String toString() {
 		return "Base";
-	}
-	
-	public Material getMaterial() {
-		return this.mat;
 	}
 }
