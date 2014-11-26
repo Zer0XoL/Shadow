@@ -23,7 +23,7 @@ Unknown bugs:
 Probably lots!
 
 
-Some screenshots for demonstration of what Shadow can do: 
+[B]Some screenshots for demonstration of what Shadow can do: [/B]
 - http://imgur.com/a/zuIwZ
 - http://imgur.com/Yf73Pcb
 - http://pasteboard.co/1ZZM0VUR.png
