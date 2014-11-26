@@ -21,3 +21,9 @@ it's also a possibility it is a precision error at some other place.
 
 Unknown bugs:
 Probably lots!
+
+
+Some screenshots for demonstration of what Shadow can do: 
+- http://imgur.com/a/zuIwZ
+- http://imgur.com/Yf73Pcb
+- http://pasteboard.co/1ZZM0VUR.png
