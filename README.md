@@ -15,15 +15,17 @@ It's a bit unclear what kind of optimizations can be made for the shadow mapping
 past spatial partitioning.
 
 Known bugs:
+---------------------
 - The shadow mapping at certain light positions reveals tears where it will shade (so far) axial strips even though
 it shouldn't. It may be that the AABB intersection with rays implementation has unforeseen corner-cases,
 it's also a possibility it is a precision error at some other place.
 
 Unknown bugs:
+--------------------
 Probably lots!
 
 
-[B]Some screenshots for demonstration of what Shadow can do: [/B]
+**Some screenshots for demonstration of what Shadow can do:**
 - http://imgur.com/a/zuIwZ
 - http://imgur.com/Yf73Pcb
 - http://pasteboard.co/1ZZM0VUR.png
