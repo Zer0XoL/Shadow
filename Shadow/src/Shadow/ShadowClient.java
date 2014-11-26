@@ -29,8 +29,8 @@ public class ShadowClient extends Canvas implements Runnable {
                                                            // buffered
     public static final int DEFAULT_TICKRATE = 60;
     public static final int DEFAULT_FPS = 144;
-    public static final int DEFAULT_WIDTH = 160 * 2;
-    public static final int DEFAULT_HEIGHT = 120 * 2;
+    public static final int DEFAULT_WIDTH = 320;
+    public static final int DEFAULT_HEIGHT = 240;
     public static final int SCREEN_SCALE = 2;
     public static final float VIEWPORT_SCALE_FACTOR = 1.0F;
     public static final String TITLE = "Shadow Client";
@@ -165,7 +165,7 @@ public class ShadowClient extends Canvas implements Runnable {
             swapBuffers();
             
             try {
-                Thread.sleep(0);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -195,7 +195,7 @@ public class ShadowClient extends Canvas implements Runnable {
     
     public void render() {
         viewport.clear();
-        level.renderTileShader(viewport);
+        level.renderPixelShader(viewport);
 //        testSprite.render(viewport, 128, 96);
 //        testParticle.render(viewport);
 //        testParticle2.render(viewport);

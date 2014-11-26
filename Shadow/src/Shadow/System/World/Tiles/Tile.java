@@ -24,16 +24,16 @@ public class Tile {
 
 	public static final Tile[] tiles = new Tile[MAX_TILES];
 
-	public static final TileVoid voidTile = new TileVoid(0, LAYER_BACKGROUND, new Material(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	public static final TileVoid voidTile = new TileVoid(0, LAYER_BACKGROUND, new Material(0D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 0D));
 	public static final TileGrass grassTile = new TileGrass(1, LAYER_BACKGROUND, new Material(0.1, 0.1, 0.1,
 																							  0.8, 0.8, 0.8,
 																							  0.8, 0.8, 0.8,
-																							  1));
+																							  2));
 	
 	public static final TileBrickStone stonebrickTile = new TileBrickStone(2, LAYER_INTERMEDIATE, new Material( 0.1, 0.1, 0.1,
 																												0.8, 0.8, 0.8,
 																												0.8, 0.8, 0.8,
-																												1));
+																												2));
 
 	public Tile(int id, int layer, Material mat) {
 		if (tiles[id] != null) {

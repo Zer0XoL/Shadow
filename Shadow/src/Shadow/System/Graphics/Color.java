@@ -9,6 +9,10 @@ public class Color {
 	
 	public double r, g, b, a;
 	
+	public Color() {
+		r = g = b = a = 0D;
+	}
+	
 	public Color(double r, double g, double b, double a) {
 		this.r = r;
 		this.g = g;

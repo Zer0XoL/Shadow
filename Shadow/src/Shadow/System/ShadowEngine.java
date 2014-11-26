@@ -13,4 +13,8 @@ public class ShadowEngine {
 	public static void report(String str) {
 		ErrorLog.addErrorMessage(str);
 	}
+	
+	public static void log(String str) {
+		ErrorLog.addLogEntry(str);
+	}
 }

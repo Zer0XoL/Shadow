@@ -10,8 +10,11 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
+import Shadow.ShadowClient;
+import Shadow.System.ShadowEngine;
 import Shadow.System.Graphics.Color;
 import Shadow.System.Graphics.Lights.Light;
 import Shadow.System.Graphics.Lights.LightPositional;
@@ -20,10 +23,20 @@ import Shadow.System.Graphics.Screen.SpriteSheet;
 import Shadow.System.Graphics.Screen.Viewport;
 import Shadow.System.World.Geometry.GeometryBuffer;
 import Shadow.System.World.Tiles.Tile;
+import Shadow.Util.Math.AABB;
 import Shadow.Util.Math.Point;
+import Shadow.Util.Math.Ray;
 import Shadow.Util.Math.Vector;
 
 public class Level {
+	
+	
+	public static final int MAX_DYNAMIC_LIGHTS = 0x20; //sizeof(int) << 3
+	
+	public static final int STENCIL_LIGHT_MASK = 0x01;
+	
+	public static final byte MODE_SHADING_PER_PIXEL = 0x01;
+	public static final byte MODE_SHADING_PER_TILE = 0x02;
 	
 	private static final int HEADERSIZE = 2;
 	
@@ -32,24 +45,43 @@ public class Level {
 	private int[] layerBackground;
 	private int[] layerIntermediate;
 	private int[] layerOverlay;
+	private int[] stencilBuffer;
+	private byte shadingMode;
 	
 	private GeometryBuffer gbuf = new GeometryBuffer();
 	private List<Light> lights = new ArrayList<>();
 	
 	public static final String test = "src/res/testlevel.lvl";
 	private static final String loadedTiles = "src/res/tilesoutput.txt";
+	private static final String bufferDebug = "src/res/bufferdebug.txt";
 	
 	public Level(String path) {
 		loadLevel(path);
 	}
 	
+	
 	public void init() {
-		lights.add(new LightPositional(0, 0, 50));
-		lights.add(new LightPositional( new Color(0.1, 0.1, 0.1, 1D),
-									    new Color(0.9, 0.9, 0.9, 1D),
-										new Color(0.9, 0.9, 0.1, 1D),
-										240, 200, 20));
-		bufferTiles();
+//		addLight(new LightPositional(30, 20, 25));
+//		addLight(new LightPositional(300, 220, 5));
+//		addLight(new LightPositional(300, 220, 5));
+//		addLight(new LightPositional(300, 220, 5));
+		
+		addLight(new LightPositional( 	new Color(0.1, 0.1, 0.1, 1D),
+			    						new Color(1.0, 1.0, 0.0, 1D),
+			    						new Color(1.0, 1.0, 0.0, 1D),
+			    						170, 120, 40));
+//		
+//		addLight(new LightPositional( 	new Color(0.1, 0.1, 0.1, 1D),
+//									  	new Color(0.9, 0.9, 0.9, 1D),
+//										new Color(0.9, 0.9, 0.9, 1D),
+//										240, 200, 50));
+		
+//		addLight(new LightPositional( 	new Color(0.1, 0.1, 0.1, 1D),
+//			    						new Color(0.9, 0.9, 0.9, 1D),
+//			    						new Color(0.9, 0.9, 0.9, 1D),
+//			    						240, 20, 16));
+		
+		stencilBuffer = new int[ShadowClient.DEFAULT_WIDTH * ShadowClient.DEFAULT_HEIGHT]; //hack
 		writeTiles(loadedTiles);
 	}
 	
@@ -59,27 +91,21 @@ public class Level {
 	
 	public void renderPixelShader(Viewport vp) {
 		
+		shadowVolumePrePass(vp);
+		
 		//Per tile calculations
-		for (int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
-			for (int x = 0; x < w * Tile.TILESIZE; x += Tile.TILESIZE) {
+		for (int y = 0; y < ShadowClient.DEFAULT_HEIGHT; y += Tile.TILESIZE) {
+			for (int x = 0; x < ShadowClient.DEFAULT_WIDTH; x += Tile.TILESIZE) {
 				Tile t = getTile(x, y);
 				Material currMaterial = t.mat;
-//				vertices.add(new Point(x, y + Tile.TILESIZE)); //bottom-left vertex
-//				vertices.add(new Point(x + Tile.TILESIZE, y + Tile.TILESIZE)); //bottom-right vertex
-//				vertices.add(new Point(x + Tile.TILESIZE, y)); //top-right vertex
-//				vertices.add(new Point(x, y)); //top-left vertex
-				
-//				normals.add(new Vector(0, 0, 1)); //we add a normal to each vertex so that if we wish we can offset them and interpolate for effects
-//				normals.add(new Vector(0, 0, 1));
-//				normals.add(new Vector(0, 0, 1));
-//				normals.add(new Vector(0, 0, 1));
-				
 				
 				//Per pixel calculations
 				for(int yy = 0; yy < 8; ++yy) {
-					for(int xx = 0; xx < 8; ++xx) {
+					for(int xx = 0; xx < 8; xx++) {
 						int xp = x + xx;
 						int yp = y + yy;
+						
+						
 						
 						int tx = ((t.id % SpriteSheet.testtiles.getWidth()) << 3) + xx; //<< 3 is equivalent of * Tile.TILESIZE
 						int ty = ((t.id / SpriteSheet.testtiles.getHeight()) << 3) + yy;
@@ -100,10 +126,13 @@ public class Level {
 						
 						//per light contribution calculations
 						for(int i = 0; i < lights.size(); ++i) {
+							if(((stencilBuffer[xp + yp * ShadowClient.DEFAULT_WIDTH] >> i) & STENCIL_LIGHT_MASK) == 0) {
+								continue;
+							}
 							//calculate contribution by positional lights in the level
 							Light tmp = lights.get(i);
 							if(tmp instanceof LightPositional) {
-								double nx = 0, ny = -0.6, nz = 0.8; //this normal SHOULD be normalized if you choose elements such that ||n|| > 1
+								double nx = 0, ny = 0, nz = 1.0; //this normal SHOULD be normalized if you choose elements such that ||n|| > 1
 								
 								/*
 								 * Do necessary calculations for the diffuse term
@@ -164,28 +193,20 @@ public class Level {
 		}
 	}
 
+	Color shadePix = new Color();
 	
 	public void renderTileShader(Viewport vp) {
+		
+		shadowVolumePrePass(vp);
 		
 		//Per tile calculations
 		for (int y = 0; y < vp.getHeight(); y += Tile.TILESIZE) {
 			for (int x = 0; x < vp.getWidth(); x += Tile.TILESIZE) {
 				Tile t = getTile(x, y);
 				Material currMaterial = t.mat;
-//				vertices.add(new Point(x, y + Tile.TILESIZE)); //bottom-left vertex
-//				vertices.add(new Point(x + Tile.TILESIZE, y + Tile.TILESIZE)); //bottom-right vertex
-//				vertices.add(new Point(x + Tile.TILESIZE, y)); //top-right vertex
-//				vertices.add(new Point(x, y)); //top-left vertex
-				
-//				normals.add(new Vector(0, 0, 1)); //we add a normal to each vertex so that if we wish we can offset them and interpolate for effects
-//				normals.add(new Vector(0, 0, 1));
-//				normals.add(new Vector(0, 0, 1));
-//				normals.add(new Vector(0, 0, 1));
-				
 				
 				//Per tile calculations
 				boolean hasCalculated = false;
-				Color shadePix = null;
 				double contribTotalR = 0D;
 				double contribTotalG = 0D;
 				double contribTotalB = 0D;
@@ -216,12 +237,15 @@ public class Level {
 						int g = (pix >> 8) & 0xff;
 						int b = pix & 0xff;
 						
-						shadePix = new Color(r, g, b, a);
+						shadePix.set(r, g, b, a);
 						
 						if(!hasCalculated) {
 						
 						//per light contribution calculations
 						for(int i = 0; i < lights.size(); ++i) {
+							if(((stencilBuffer[(xp >> 3) + (yp >> 3) * w] >> i) & STENCIL_LIGHT_MASK) == 0) {
+								continue;
+							}
 							//calculate contribution by positional lights in the level
 							Light tmp = lights.get(i);
 							if(tmp instanceof LightPositional) {
@@ -245,14 +269,14 @@ public class Level {
 								 */
 								double vx = (vp.getCamX() - xp), vy = (vp.getCamY() - yp), vz = (vp.getCamZ() - 0); //vector to (v)iewer / eye
 								double hx = vx + sx, hy = vy + sy, hz = vz + sz; //Blinn's halfway vector h = v + s
-								double hlen = Math.sqrt(hx * hx + hy * hy + hz * hz);
+								double hlen = invSqrt(hx * hx + hy * hy + hz * hz);
 								
 								hx /= hlen; //normalize the halfway vector
 								hy /= hlen;
 								hz /= hlen;
 								
 								blinn = hx * nx + hy * ny + hz * nz; //Blinn-Phong specular reflection (cos(b) = dot(norm(h), norm(n)))
-								blinn = Math.max(0, Math.pow(blinn, currMaterial.specularPow));
+								blinn = blinn * blinn; //Math.max(0, Math.pow(blinn, currMaterial.specularPow));
 								
 								/*
 								 * Diffuse contributions
@@ -286,6 +310,36 @@ public class Level {
 				}
 			}
 		}
+	}
+	
+	/*
+	 * Calculate intersections between lights and the shade objects (pixel or tiles)
+	 * to determine lit or not by each light
+	 * TODO - Consider spatial partitioning for optimization at some point???
+	 */
+	public void shadowVolumePrePass(Viewport vp) {
+		boolean intersected;
+		
+		for(int y = 0; y < ShadowClient.DEFAULT_HEIGHT; ++y) {
+			for(int x = 0; x < ShadowClient.DEFAULT_WIDTH; ++x) {
+				stencilBuffer[x + y * ShadowClient.DEFAULT_WIDTH] = 0; //clear
+				for(int i = 0; i < lights.size(); ++i) {
+					intersected = false;
+					Light tmp = lights.get(i);
+					Ray r = new Ray(x, getTile(x, y).layer * 15, y, tmp.x, tmp.z, tmp.y);
+					for(int j = 0; j < gbuf.bounds.size(); ++j) {
+						if(AABB.intersection(r, gbuf.bounds.get(j))) {
+							intersected = true;
+							break;
+						}
+					}
+					if(!intersected) {
+						stencilBuffer[x + y * ShadowClient.DEFAULT_WIDTH] |= (1 << i);
+					}
+				}
+			}
+		}
+		writeIntBuffer(stencilBuffer, ShadowClient.DEFAULT_WIDTH, ShadowClient.DEFAULT_HEIGHT, bufferDebug);
 	}
 
 	
@@ -333,6 +387,22 @@ public class Level {
 		}
 		
 		bufferTiles();
+		
+		/*
+		 * Write bounds to the G-buffer
+		 */
+		
+		int tilesize = Tile.TILESIZE;
+		for(int y = 0; y < h * Tile.TILESIZE; y += Tile.TILESIZE) {
+			for(int x = 0; x < w * Tile.TILESIZE; x += Tile.TILESIZE) {
+				Tile t = getTile(x, y);
+				if(t.layer > Tile.LAYER_BACKGROUND) {
+					gbuf.addBounds(new AABB(x, 0, y, x + Tile.TILESIZE, 15, y + Tile.TILESIZE));
+				}
+			}
+		}
+		
+		bufferTiles();
 	}
 	
 	public void writeTiles(String path) {
@@ -342,6 +412,37 @@ public class Level {
 			for(int y = 0; y < h; ++y) {
 				for(int x = 0; x < w; ++x) {
 					writer.print(tiles[x + y * w] + " ");
+				}
+				writer.print("\n");
+			}
+			
+			writer.flush();
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void initializeIntBuffer(int[] srcbuf, int w, int h) {
+		srcbuf = new int[w * h];
+		for(int i = 0; i < srcbuf.length; ++i) {
+			srcbuf[i] = 0;
+		}
+	}
+	
+	public void clearBuffer(int[] srcbuf) {
+		for(int i = 0; i < srcbuf.length; ++i) {
+			srcbuf[i] = 0;
+		}
+	}
+	
+	public void writeIntBuffer(int[] buffer, int w, int h, String path) {
+		try {
+			PrintWriter writer = new PrintWriter(path);
+			
+			for(int y = 0; y < h; ++y) {
+				for(int x = 0; x < w; ++x) {
+					writer.print(buffer[x + y * w] + " ");
 				}
 				writer.print("\n");
 			}
@@ -394,5 +495,29 @@ public class Level {
 		y >>= 3;
 		if(x < 0 || x >= w || y < 0 || y >= h) return;
 		setTileType(t.id, x, y);
+	}
+	
+	public void addLight(Light l) {
+		if(lights.size() > MAX_DYNAMIC_LIGHTS) {
+			ShadowEngine.log("Attempted to add more lights than allowed (" + MAX_DYNAMIC_LIGHTS + ")");
+			return;
+		}
+		if(l == null) {
+			ShadowEngine.log("Attempted to add null light.");
+			return;
+		}
+		lights.add(l);
+	}
+	
+	public void removeLight(Light l) {
+		lights.remove(l);
+	}
+	
+	public void removeLight(int index) {
+		lights.remove(index);
+	}
+	
+	public Light getLight(int index) {
+		return lights.get(index);
 	}
 }
