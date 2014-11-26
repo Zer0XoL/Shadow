@@ -3,7 +3,7 @@ Shadow
 
 This is a repo for any engine, system or game related code. It could be anything at any time.
 
-So far it's a completely from scratch written Blinn-Phong shader with volumetric shadow mapping.
+So far it's a completely from-scratch-written (using nothing else but raster data provided by the Java libraries) Blinn-Phong shader with volumetric shadow mapping in 2D.
 It features support for two types of shading right now, per-tile and per-pixel. It's implemented solely to run in
 software, and for that reason per-pixel shading in realtime with dynamic lighting is not usable, refer to use
 per-tile shading as it is feasible as an option.
