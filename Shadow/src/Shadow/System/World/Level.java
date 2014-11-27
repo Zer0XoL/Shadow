@@ -339,7 +339,7 @@ public class Level {
 				}
 			}
 		}
-		writeIntBuffer(stencilBuffer, ShadowClient.DEFAULT_WIDTH, ShadowClient.DEFAULT_HEIGHT, bufferDebug);
+		//writeIntBuffer(stencilBuffer, ShadowClient.DEFAULT_WIDTH, ShadowClient.DEFAULT_HEIGHT, bufferDebug);
 	}
 
 	
@@ -485,7 +485,7 @@ public class Level {
 	/*
 	 * Intended for readability in setTile, maybe not necessary?
 	 */
-	private void setTileType(int id, int x, int y) {
+	public void setTileType(int id, int x, int y) {
 		if(x < 0 || x >= w || y < 0 || y >= h) return;
 		tiles[x + y * w] = id;
 	}

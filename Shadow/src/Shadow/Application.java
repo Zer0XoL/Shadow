@@ -1,5 +1,6 @@
 package Shadow;
 
+import Shadow.Editor.Editor;
 import Shadow.System.ShadowEngine;
 import Shadow.System.Debug.ErrorLog;
 import Shadow.System.Script.ShadowCommand;
@@ -10,8 +11,10 @@ import Shadow.Util.Math.Ray;
 public class Application {
 	public static void main(String[] args) {
 		ShadowEngine engine = new ShadowEngine();
+		Editor editor       = new Editor("src/res/testlevel.lvl");
 		
 		engine.run();
+		editor.run();
 		
 		ShadowCommand.run("echo the command string");
 		ShadowCommand.run("add 1.337 3.14");
